@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+</head>
+<body>
+
+  <script>
+  var quantities = {};
+  var names = [];
+  var lastId = null;
+  function setQuantity(clicked_id){
+    console.log(quantities[clicked_id]);
+    lastId = clicked_id;
+    let form = document.getElementById("input");
+    form.max = quantities[clicked_id];
+    };
+
+  function addToOrder(){
+    var data = {id: lastId, quantity: document.getElementById('input').value};
+    $.ajax({
+      url: '/products',
+      data : JSON.stringify(data),
+      type : 'POST',
+      success: function(response){
+        location.reload();
+      }
+    })
+  };
+  </script>
+
+  <div class="float-right">
+     {{ number }} products in order
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#orderModal" onclick="setQuantity()"> Place Order </button>
+  </div>
+
+  <div class='float-left'>
+    <button onclick="window.location.href= '/';" class="btn btn-secondary"> Landing Page </a>
+  </div>
+
+  {% if number > 0 %}
+  <div class="modal" id="orderModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Order</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Current Products:</p>
+      <table class="table table_borderless">
+        <thead>
+          <tr>
+            <th scope="col"> Product </th>
+            <th scope="col"> Price </th>
+            <th scope="col"> Quantity </th>
+          </tr>
+          <tbody>
+          {% for item in content.values() %}
+          <tr>
+            <td> {{ item[0] }} </td>
+            <td> {{ item[1][1] }} €</td>
+            <td> {{ item[1][0] }} </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+          <p> Total Price: {{price}} €</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="window.location.href= '/confirmed';">Confirm</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  {% else %}
+  <div class="modal" id="orderModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Order is empty</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Insert Products to place the Order.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+  </div>
+
+
+  {% endif %}
+
+  <table class="table" id="myTable">
+    <thead class="thead-dark">
+      <tr>
+        <th scope="col"> Product Name </th>
+        <th scope="col"> Price </th>
+        <th scope="col"> Quantity </th>
+        <th scope="col"> Description </th>
+        <th scope="col"> Seller </th>
+        <th scope="col"> Seller Rating </th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for product in products %}
+      <script>
+        function load(){
+          key = "{{product['_id']}}"
+          value = "{{product['quantity']}}"
+          quantities[key] = value
+          //quantities."{{product['name']}}" = "{{product['quantity']}}"
+          names.push("{{product['name']}}");
+        };
+        load();
+      </script>
+      <tr>
+        <th> <button type="button" class="btn btn-link" data-toggle="modal" data-target="#productModal" onclick="setQuantity(this.id)" id= {{product['_id']}}> {{ product['name'] }} </button> </th>
+
+        <div class="modal fade" id="productModal" tabindex="-1" role="dialog"  aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Add to order?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <form action="" method="post">
+                  <input id="input" type="number" min = 1 max= "*jsvariable*" placeholder="Quantity" name="input">
+                </form>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button class="btn btn-primary" type="submit" onclick="addToOrder()">Add</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <th> {{ product['price'] }} €</th>
+        <th> {{ product['quantity'] }} </th>
+        <th> {{ product['description'] }} </th>
+        <th> {{ product['seller'] }} </th>
+        <th> {{ product['seller_rating']}} </th>
+      </tr>
+    {% endfor %}
+    <script>
+      console.log(names);
+    </script>
+    </tbody>
+  </table>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="{{
+    url_for('static', filename='jquery-3.4.1.slim.js') }}">\x3C/script>')</script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+</body>
+</html>
